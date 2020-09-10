@@ -56,5 +56,5 @@ knitr::kable(person_data[1:10,])
 
 I also export the dataset into a CSV file as follows:
 ```{r}
-write_csv(person_data, "people.csv")
+write_csv(person_data, "ArielBi_people.csv")
 ```
