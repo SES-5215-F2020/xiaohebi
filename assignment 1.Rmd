@@ -1,0 +1,81 @@
+---
+title: "Assignment 1"
+author: "Ariel Bi"
+date: "9/7/2020"
+output: html_document
+---
+
+# Question 1
+Run the following only once:
+```{r}
+# install.packages(c("remotes","tidyverse"))
+# remotes::install_github("walkerke/tidycensus")
+```
+
+
+Load the required libraries.
+```{r}
+library(tidycensus)
+library(tidyverse)
+```
+```{r}
+# census_api_key("", install=TRUE)
+```
+```{r}
+person_vars_2018 <- pums_variables %>%
+  distinct(year, survey, var_code, 
+           var_label, data_type, level) %>%
+  filter(level == "person", year == 2018, survey == "acs1")
+```
+
+```{r}
+ census_api_key("38a121b337366f3bce1e61838d2d4d0ed321dd9e", install=TRUE,overwrite=TRUE)
+```
+
+```{r}
+person_vars_2018 <- pums_variables %>%
+  distinct(year, survey, var_code, 
+           var_label, data_type, level) %>%
+  filter(level == "person", year == 2018, survey == "acs1")
+```
+
+```{r}
+hh_vars_2018 <- pums_variables %>%
+  distinct(year, survey, var_code, 
+           var_label, data_type, level) %>%
+  filter(level == "housing", year == 2018, survey == "acs1")
+```
+
+```{r}
+area_vars_2018 <- load_variables(2018, "acs1")
+```
+
+I have chosen to use person as my unit of analysis. I have also chosen the following 5 variables:
+1.Ability to speak english ENG
+2. Citizenship status CIT
+3. Wages or salary income past 12 month WAGP
+4. Age AGEP
+5. Usual hours worked per week past 12 months WKHP
+
+```{r}
+person_data <- get_pums(variables = c("ENG", 
+                                      "CIT", 
+                                      "WAGP", 
+                                      "WKHP", 
+                                      "AGEP"),
+                        state = "MA", 
+                        year = 2018, 
+                        survey = "acs1",
+                        recode = TRUE) %>%
+  select(ENG_label, CIT_label, WAGP, AGEP, WKHP)
+```
+```{r}
+person_data
+```
+```{r}
+knitr::kable(person_data[1:10,])
+```
+
+```{r}
+write_csv(person_data, "people.csv")
+```
