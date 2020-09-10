@@ -1,0 +1,60 @@
+---
+title: "Assignment 1"
+author: "Ariel Bi"
+date: "9/7/2020"
+output: html_document
+---
+
+Load the required libraries.
+```{r}
+library(tidycensus)
+library(tidyverse)
+```
+
+
+
+I have chosen to use person as my unit of analysis. 
+```{r}
+person_vars_2018 <- pums_variables %>%
+  distinct(year, survey, var_code, 
+           var_label, data_type, level) %>%
+  filter(level == "person", year == 2018, survey == "acs1")
+```
+
+
+I have also chose to analyze the relationship between the ability to speak English, citizenship status, wage or salary in the past 12 months, age, and usual hours worked per week.My sample population is the population of Massachusetts.
+
+1.Ability to speak english ENG (categorical)
+2. Citizenship status CIT (Categorical)
+3. Wages or salary income past 12 month WAGP (Continuous)
+4. Age AGEP (Continuous)
+5. Usual hours worked per week past 12 months WKHP (Continuous)
+
+```{r results='hide'}
+person_data <- get_pums(variables = c("ENG", 
+                                      "CIT", 
+                                      "WAGP", 
+                                      "WKHP", 
+                                      "AGEP"),
+                        state = "MA", 
+                        year = 2018, 
+                        survey = "acs1",
+                        recode = TRUE) %>%
+  select(ENG_label, CIT_label, WAGP, AGEP, WKHP)
+```
+
+I show the first 10 rows of my dataset, which has a total of 70131 rows.
+
+```{r}
+person_data
+```
+I transform the first ten rows of the dataset into a kable.
+
+```{r}
+knitr::kable(person_data[1:10,])
+```
+
+I also export the dataset into a CSV file as follows:
+```{r}
+write_csv(person_data, "people.csv")
+```
