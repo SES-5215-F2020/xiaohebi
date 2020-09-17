@@ -39,6 +39,16 @@ sd(filtered_dataset$WKHP)
 ```
 
 ```{r}
+# get the 25th and 75th quantiles of each of the continuous columns
+WAGP_quantiles = quantile(filtered_dataset$WAGP,c(0.25,0.75))
+AGEP_quantiles = quantile(filtered_dataset$AGEP,c(0.25,0.75))
+WKHP_quantiles = quantile(filtered_dataset$WKHP,c(0.25,0.75))
+WAGP_quantiles
+AGEP_quantiles
+WKHP_quantiles
+```
+
+```{r}
 # Calculate the interquartile range of each continuous variable
 as.numeric(WAGP_quantiles[2] - WAGP_quantiles[1])
 as.numeric(AGEP_quantiles[2] - AGEP_quantiles[1])
@@ -70,16 +80,19 @@ CI_WKHP
 # Make a histogram for each continuous variable
 hist(filtered_dataset$WAGP)
 ```
+
 Most people in the analyzed population group earned between $0 and $50000 in the past 12 months.
 
 ```{r}
 hist(filtered_dataset$AGEP)
 ```
+
 Most people in this group are below the age of 80. Many people are in their early 20's or late 50's. 
 
 ```{r}
 hist(filtered_dataset$WKHP)
 ```
+
 Most people are either jobless, or have 9 to 5 jobs averaging around 40 hours per week. 
 
 # Confidence intervals for categorical variables
@@ -92,6 +105,7 @@ library(plyr)
 ```{r}
 # get the ENG_label counts
 eng_counts = count(filtered_dataset,vars='ENG_label')
+eng_counts
 eng_freq = eng_counts$freq
 # print the 95% confidence intervals
 MultinomCI(eng_freq,
@@ -102,6 +116,7 @@ MultinomCI(eng_freq,
 ```{r}
 # get the ENG_label counts
 cit_counts = count(filtered_dataset,vars='CIT_label')
+cit_counts
 cit_freq = cit_counts$freq
 # print the 95% confidence intervals
 MultinomCI(cit_freq,
