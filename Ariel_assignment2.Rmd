@@ -1,0 +1,91 @@
+---
+title: "Ariel assignment 2 urban planning"
+output: html_notebook
+---
+```{r,results="hide"}
+library(ggplot2)
+library(tidyverse)
+library(tidycensus)
+```
+
+# Import csv
+
+```{r}
+dataset = read.csv("ArielBi_people.csv")
+# filter dataset to have people older than 21
+filtered_dataset <- dataset %>% 
+                        filter(AGEP >= 21)
+```
+
+# Sample statistics
+
+```{r}
+summary(filtered_dataset)
+```
+
+```{r}
+# get the means of each of the continuous columns
+mean(filtered_dataset$WAGP)
+mean(filtered_dataset$AGEP)
+mean(filtered_dataset$WKHP)
+```
+
+```{r}
+# get the standard deviations of each of the continuous columns
+sd(filtered_dataset$WAGP)
+sd(filtered_dataset$AGEP)
+sd(filtered_dataset$WKHP)
+```
+
+```{r}
+# get the 25th and 75th quantiles of each of the continuous columns
+WAGP_quantiles = quantile(filtered_dataset$WAGP,c(0.25,0.75))
+AGEP_quantiles = quantile(filtered_dataset$AGEP,c(0.25,0.75))
+WKHP_quantiles = quantile(filtered_dataset$WKHP,c(0.25,0.75))
+WAGP_quantiles
+AGEP_quantiles
+WKHP_quantiles
+```
+```{r}
+# Get the interquartile range
+as.numeric(WAGP_quantiles[2] - WAGP_quantiles[1])
+as.numeric(AGEP_quantiles[2] - AGEP_quantiles[1])
+as.numeric(WKHP_quantiles[2] - WKHP_quantiles[1])
+```
+
+```{r}
+# Get the 95% confidence interval of the mean
+N = nrow(filtered_dataset) # this is the number of rows 
+# the standard error is standard deviation divided by square root by number of samples(N)
+stderr_WAGP = sd(filtered_dataset$WAGP)/sqrt(N)
+stderr_AGEP = sd(filtered_dataset$AGEP)/sqrt(N)
+stderr_WKHP = sd(filtered_dataset$WKHP)/sqrt(N)
+print("Standard errors:")
+stderr_WAGP
+stderr_AGEP
+stderr_WKHP
+# the 95% confidence interval is 1.96 standard errors
+CI_WAGP = 1.96*stderr_WAGP
+CI_AGEP = 1.96*stderr_AGEP
+CI_WKHP = 1.96*stderr_WKHP
+print("95% confidence interval sizes")
+CI_WAGP
+CI_AGEP
+CI_WKHP
+```
+
+
+Hence we have that the mean of WAGP is 44409.47 plus minus 614.8868, the mean of AGEP is 51.12387 plus minus 0.1538387 and the mean of WKHP is 26.64919 plus minus 0.1755031.
+
+```{r}
+# Make a histogram for each of the continuous variables
+hist(filtered_dataset$WAGP)
+```
+
+```{r}
+hist(filtered_dataset$AGEP)
+```
+
+```{r}
+hist(filtered_dataset$WKHP)
+```

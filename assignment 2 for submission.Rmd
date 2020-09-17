@@ -1,0 +1,110 @@
+---
+title: "Assignment 2"
+author: "Ariel Bi"
+date: "9/16/2020"
+output: html_document
+---
+
+```{r, results="hide"}
+library(ggplot2)
+library(tidyverse)
+library(tidycensus)
+```
+
+I have chosen to analyze the relationship between the ability to speak English, citizenship status, wage or salary in the past 12 months, age, and usual hours worked per week. My sample population is the population of Massachusetts.
+
+1. Ability to speak english ENG (categorical)
+2. Citizenship status CIT (Categorical)
+3. Wages or salary income past 12 month WAGP (Continuous)
+4. Age AGEP (Continuous)
+5. Usual hours worked per week past 12 months WKHP (Continuous)
+
+```{r}
+dataset=read.csv("ArielBi_people.csv")
+filtered_dataset = filter(dataset,AGEP >= 18) # I have only selected adults over the age of 18. 
+```
+
+```{r}
+# calculate the means of each continuous variable
+mean(filtered_dataset$WAGP)
+mean(filtered_dataset$AGEP)
+mean(filtered_dataset$WKHP)
+```
+
+```{r}
+# calculate the standard deviations of each continuous variable
+sd(filtered_dataset$WAGP)
+sd(filtered_dataset$AGEP)
+sd(filtered_dataset$WKHP)
+```
+
+```{r}
+# Calculate the interquartile range of each continuous variable
+as.numeric(WAGP_quantiles[2] - WAGP_quantiles[1])
+as.numeric(AGEP_quantiles[2] - AGEP_quantiles[1])
+as.numeric(WKHP_quantiles[2] - WKHP_quantiles[1])
+```
+
+```{r}
+# Get the 95% confidence interval of the mean
+N = nrow(filtered_dataset) # this is the number of rows 
+# the standard error is standard deviation divided by square root by number of samples(N)
+stderr_WAGP = sd(filtered_dataset$WAGP)/sqrt(N)
+stderr_AGEP = sd(filtered_dataset$AGEP)/sqrt(N)
+stderr_WKHP = sd(filtered_dataset$WKHP)/sqrt(N)
+print("Standard errors:")
+stderr_WAGP
+stderr_AGEP
+stderr_WKHP
+# the 95% confidence interval is 1.96 standard errors
+CI_WAGP = 1.96*stderr_WAGP
+CI_AGEP = 1.96*stderr_AGEP
+CI_WKHP = 1.96*stderr_WKHP
+print("95% confidence interval sizes")
+CI_WAGP
+CI_AGEP
+CI_WKHP
+```
+
+```{r}
+# Make a histogram for each continuous variable
+hist(filtered_dataset$WAGP)
+```
+Most people in the analyzed population group earned between $0 and $50000 in the past 12 months.
+
+```{r}
+hist(filtered_dataset$AGEP)
+```
+Most people in this group are below the age of 80. Many people are in their early 20's or late 50's. 
+
+```{r}
+hist(filtered_dataset$WKHP)
+```
+Most people are either jobless, or have 9 to 5 jobs averaging around 40 hours per week. 
+
+# Confidence intervals for categorical variables
+
+```{r}
+library(DescTools)
+library(plyr)
+```
+
+```{r}
+# get the ENG_label counts
+eng_counts = count(filtered_dataset,vars='ENG_label')
+eng_freq = eng_counts$freq
+# print the 95% confidence intervals
+MultinomCI(eng_freq,
+           conf.level=0.95,
+           method="sisonglaz")
+```
+
+```{r}
+# get the ENG_label counts
+cit_counts = count(filtered_dataset,vars='CIT_label')
+cit_freq = cit_counts$freq
+# print the 95% confidence intervals
+MultinomCI(cit_freq,
+           conf.level=0.95,
+           method="sisonglaz")
+```
