@@ -1,0 +1,303 @@
+---
+title: "Assignment 3"
+author: "Ariel Bi"
+date: "9/20/2020"
+output: html_document
+---
+
+```{r, message=FALSE}
+library(ggplot2)
+library(tidyverse)
+library(tidycensus)
+```
+
+I have chosen to analyze the relationship between the ability to speak English, citizenship status, wage or salary in the past 12 months, age, and usual hours worked per week. My sample population is the adult population of Massachusetts.
+
+1. Ability to speak english ENG (categorical)
+2. Citizenship status CIT (Categorical)
+3. Wages or salary income past 12 month WAGP (Continuous)
+4. Age AGEP (Continuous)
+5. Usual hours worked per week past 12 months WKHP (Continuous)
+
+```{r}
+dataset=read.csv("ArielBi_people.csv")
+filtered_dataset = filter(dataset,AGEP >= 18) # I have only selected adults over the age of 18.
+```
+
+```{r}
+#perform chi-square test between 2 categorical variables
+chisq_result = chisq.test(filtered_dataset$ENG_label, filtered_dataset$CIT_label, correct=TRUE)
+chisq_result
+```
+Since p-value<2.2e-16,there is sufficient evidence that there is a relationship between the 2 variables.
+
+```{r}
+factor_CIT_label = as.factor(filtered_dataset$CIT_label)
+levels(factor_CIT_label)
+table(filtered_dataset$ENG_label,as.numeric(factor_CIT_label))
+```
+
+The vast majority of people who are born in the U.S (category 3) only speaks English.
+
+```{r}
+# perform correlation test between continuous variables annual wage and age.
+correlation = cor.test(filtered_dataset$WAGP, filtered_dataset$AGEP, method = "pearson")
+correlation
+```
+
+Since p-value<2.2e-16,there is sufficient evidence that there is a relationship between the 2 variables.
+
+```{r}
+ggplot(filtered_dataset, aes(x = AGEP, y = WAGP)) +
+  geom_point(size = 0.5, alpha = 0.25, position = "jitter") +
+  geom_smooth() +
+  theme_bw() +
+  scale_x_continuous(name = "Age") +
+  scale_y_continuous(name = "Annual Wage", 
+                     breaks = seq(0, 620000, by = 70000),
+                     labels = paste("$", 
+                                    prettyNum(seq(0, 620000, by = 70000),
+                                              big.mark = ","))) +
+  annotate(geom = "text", x = 0, y = 500000, 
+           label = paste("Correlation (95-percent confidence):",
+                         prettyNum(correlation$conf.int[1], digits = 2), 
+                         "to",
+                         prettyNum(correlation$conf.int[2], digits = 2)),
+           hjust = 0)
+```
+
+The average annual wage in the selected population group is around $70000, and the wage peaks in late 40's and early 50's before decreasing.
+
+```{r}
+# perform correlation test between continuous variables annual wage and work hours per week.
+correlation = cor.test(filtered_dataset$WAGP, filtered_dataset$WKHP, method = "pearson")
+correlation
+```
+
+Since p-value<2.2e-16,there is sufficient evidence that there is a relationship between the 2 variables.
+
+```{r}
+ggplot(filtered_dataset, aes(x = WKHP, y = WAGP)) +
+  geom_point(size = 0.5, alpha = 0.25, position = "jitter") +
+  geom_smooth() +
+  theme_bw() +
+  scale_x_continuous(name = "Work Hours per Week") +
+  scale_y_continuous(name = "Annual Wage", 
+                     breaks = seq(0, 620000, by = 70000),
+                     labels = paste("$", 
+                                    prettyNum(seq(0, 620000, by = 70000),
+                                              big.mark = ","))) +
+  annotate(geom = "text", x = 0, y = 550000, 
+           label = paste("Correlation (95-percent confidence):",
+                         prettyNum(correlation$conf.int[1], digits = 2), 
+                         "to",
+                         prettyNum(correlation$conf.int[2], digits = 2)),
+           hjust = 0)
+```
+
+Most people in the selected population group work for 40-60 hours per week. There is a leveling off of wages for individuals who work more than 70 hours per week.
+
+```{r}
+# perform correlation test between continuous variables age and work hours per week.
+correlation = cor.test(filtered_dataset$AGEP, filtered_dataset$WKHP, method = "pearson")
+correlation
+```
+
+Since p-value<2.2e-16,there is sufficient evidence that there is a relationship between the 2 variables.
+
+```{r}
+ggplot(filtered_dataset, aes(x = AGEP, y = WKHP)) +
+  geom_point(size = 0.5, alpha = 0.25, position = "jitter") +
+  geom_smooth() +
+  theme_bw() +
+  scale_x_continuous(name = "Age") +
+  scale_y_continuous(name = "Work Hours per Week", 
+                     breaks = seq(0, 99, by = 10),
+                     labels = paste(prettyNum(seq(0, 99, by = 10),
+                                              big.mark = ","))) +
+  annotate(geom = "text", x = 0, y = 99, 
+           label = paste("Correlation (95-percent confidence):",
+                         prettyNum(correlation$conf.int[1], digits = 2), 
+                         "to",
+                         prettyNum(correlation$conf.int[2], digits = 2)),
+           hjust = 0)
+```
+
+The average work hours per week for people between the age of 25 and 60 is 35 hours. People start to retire from their jobs around the age of 60.
+
+```{r}
+# perform ANOVA test between annual wage and ability to speak english.
+anova_test = aov(WAGP ~ ENG_label,data=filtered_dataset)
+summary(anova_test)
+```
+
+Since p-value<2.2e-16,there is sufficient evidence that there is a relationship between the 2 variables.
+
+```{r}
+ggplot(filtered_dataset, aes(x = ENG_label, y = WAGP)) +
+  geom_boxplot() +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 0)) +
+  scale_x_discrete(name = "Ability to Speak English", labels=c("N/A (less than 5 years old/speaks only English)"="NA/Only speaks english")
+                   ) +
+  scale_y_continuous(name = "Annual Wage", 
+                     breaks = seq(0, 620000, by = 70000),
+                     labels = paste("$", 
+                                    prettyNum(seq(0, 620000, by = 70000),
+                                              big.mark = ","))) 
+```
+
+This is not a very useful plot because it does not show the wage variation of most of the people.
+
+```{r}
+ggplot(filtered_dataset, aes(x = ENG_label, y = WAGP)) +
+  geom_boxplot() +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 0)) +
+  scale_x_discrete(name = "Ability to Speak English", labels=c("N/A (less than 5 years old/speaks only English)"="NA/Only speaks english")
+                   ) +
+  coord_cartesian(ylim=c(0,70000)) +
+  ylab("Annual wage/$")
+
+```
+
+The amount of wage increases as people's English speaking skills get better. However, it is interesting that English monolinguals has a lower medium wage than those who report to speak English "well" and "very Well".
+
+```{r}
+# perform ANOVA test between age and ability to speak english.
+anova_test = aov(AGEP ~ ENG_label,data=filtered_dataset)
+summary(anova_test)
+```
+
+Since p-value<2.2e-16,there is sufficient evidence that there is a relationship between the 2 variables.
+
+```{r}
+ggplot(filtered_dataset, aes(x = ENG_label, y = AGEP)) +
+  geom_boxplot() +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 0)) +
+  scale_x_discrete(name = "Ability to Speak English",labels=c("N/A (less than 5 years old/speaks only English)"="NA/Only speaks english")) +
+  scale_y_continuous(name = "Age", 
+                     breaks = seq(0, 99, by = 10),
+                     labels = paste(prettyNum(seq(0, 99, by = 10),
+                                              big.mark = ","))) 
+```
+
+Among the selected population group, the younger someone is, the more likely he or she will report a higher level of English proficiency.
+
+```{r}
+# perform ANOVA test between work hours and ability to speak English.
+anova_test = aov(WKHP ~ ENG_label,data=filtered_dataset)
+summary(anova_test)
+```
+
+Since p-value<2.2e-16,there is sufficient evidence that there is a relationship between the 2 variables.
+
+```{r}
+ggplot(filtered_dataset, aes(x = ENG_label, y = WKHP)) +
+  geom_boxplot() +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 0)) +
+  scale_x_discrete(name = "Ability to Speak English",labels=c("N/A (less than 5 years old/speaks only English)"="NA/Only speaks english")) +
+  scale_y_continuous(name = "Work Hours", 
+                     breaks = seq(0, 99, by = 10),
+                     labels = paste(prettyNum(seq(0, 99, by = 10),
+                                              big.mark = ","))) 
+```
+
+In the selected population group, the better someone's English speaking skills are the longer hours he or she will work in a given week. 
+
+```{r}
+# perform ANOVA test between annual wage and citizenship status.
+anova_test = aov(WAGP ~ CIT_label,data=filtered_dataset)
+summary(anova_test)
+```
+
+Since p-value<2.2e-16,there is sufficient evidence that there is a relationship between the 2 variables.
+
+```{r}
+ggplot(filtered_dataset, aes(x = CIT_label, y = WAGP)) +
+  geom_boxplot() +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 0)) +
+  scale_x_discrete(name = "Citizenship Status",labels=c("Born abroad of American parent(s)" ="Born abroad",
+                                                        "Born in Puerto Rico, Guam, the U.S. Virgin Islands, or the Northern Marianas" = "Born in PR etc.",
+                                                        "Born in the U.S." = "Born in US",
+                                                        "Not a citizen of the U.S." = "Not a citizen",
+                                                        "U.S. citizen by naturalization" = "Naturalized")) +
+  scale_y_continuous(name = "Annual Wage", 
+                     breaks = seq(0, 620000, by = 70000),
+                     labels = paste("$", 
+                                    prettyNum(seq(0, 620000, by = 70000),
+                                              big.mark = ",")))
+```
+
+This is not a very useful plot because it does not show the wage variation of most of the people.
+
+```{r}
+ggplot(filtered_dataset, aes(x = CIT_label, y = WAGP)) +
+  geom_boxplot() +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 0)) +
+  scale_x_discrete(name = "Citizenship Status",labels=c("Born abroad of American parent(s)" ="Born abroad",
+                                                        "Born in Puerto Rico, Guam, the U.S. Virgin Islands, or the Northern Marianas" = "Born in PR etc.",
+                                                        "Born in the U.S." = "Born in US",
+                                                        "Not a citizen of the U.S." = "Not a citizen",
+                                                        "U.S. citizen by naturalization" = "Naturalized")) +
+  coord_cartesian(ylim = c(0,70000)) + 
+  ylab("Annual wage/$")
+```
+
+Citizenship status doesn't seem to correlate to anuual wage unless someone is born in Puerto Rico, Guam, the U.S. Virgin Islands, or the Northern Marianas.
+
+```{r}
+# perform ANOVA test between age and citizenship status.
+anova_test = aov(AGEP ~ CIT_label,data=filtered_dataset)
+summary(anova_test)
+```
+
+Since p-value<2.2e-16,there is sufficient evidence that there is a relationship between the 2 variables.
+
+```{r}
+ggplot(filtered_dataset, aes(x = CIT_label, y = AGEP)) +
+  geom_boxplot() +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 0)) +
+  scale_x_discrete(name = "Citizenship Status",labels=c("Born abroad of American parent(s)" ="Born abroad",
+                                                        "Born in Puerto Rico, Guam, the U.S. Virgin Islands, or the Northern Marianas" = "Born in PR etc.",
+                                                        "Born in the U.S." = "Born in US",
+                                                        "Not a citizen of the U.S." = "Not a citizen",
+                                                        "U.S. citizen by naturalization" = "Naturalized")) +
+  scale_y_continuous(name = "Age", 
+                     breaks = seq(0, 99, by = 10),
+                     labels = paste(prettyNum(seq(0, 99, by = 10),
+                                              big.mark = ",")))
+```
+
+In the selected population, people who are not citizens seem to be substantially younger than the rest of the population.
+
+```{r}
+# perform ANOVA test between work hours and citizenship status.
+anova_test = aov(WKHP ~ CIT_label,data=filtered_dataset)
+summary(anova_test)
+```
+
+Since p-value<2.2e-16,there is sufficient evidence that there is a relationship between the 2 variables.
+
+```{r}
+ggplot(filtered_dataset, aes(x = CIT_label, y = AGEP)) +
+  geom_boxplot() +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 0)) +
+  scale_x_discrete(name = "Citizenship Status",labels=c("Born abroad of American parent(s)" ="Born abroad",
+                                                        "Born in Puerto Rico, Guam, the U.S. Virgin Islands, or the Northern Marianas" = "Born in PR etc.",
+                                                        "Born in the U.S." = "Born in US",
+                                                        "Not a citizen of the U.S." = "Not a citizen",
+                                                        "U.S. citizen by naturalization" = "Naturalized")) +
+  scale_y_continuous(name = "Work Hours", 
+                     breaks = seq(0, 99, by = 10),
+                     labels = paste(prettyNum(seq(0, 99, by = 10),
+                                              big.mark = ",")))
+```
+
+In the selected population, people have don't have citizenship seem to have the least work hours. There doesn't seem to be significant correlation between work hours and the citizenship status of the rest of the population.
