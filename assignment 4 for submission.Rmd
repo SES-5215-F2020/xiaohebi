@@ -1,0 +1,40 @@
+
+---
+title: "Assignment 4"
+author: "Ariel Bi"
+date: "9/26/2020"
+output: html_document
+---
+
+```{r, message=FALSE}
+library(tidyverse)
+library(tidycensus)
+```
+
+I have chosen to analyze the relationship between the ability to speak English, citizenship status, wage or salary in the past 12 months, age, and usual hours worked per week. My sample population is the adult population of Massachusetts.
+
+1. Ability to speak english ENG (categorical)
+2. Citizenship status CIT (Categorical)
+3. Wages or salary income past 12 month WAGP (Continuous)
+4. Age AGEP (Continuous)
+5. Usual hours worked per week past 12 months WKHP (Continuous)
+
+```{r}
+# I shorten the names of the labels
+dataset=read.csv("ArielBi_people.csv")%>%
+  mutate(struct_type = case_when(
+    CIT_label=="Born in Puerto Rico and Islands"~"Born in Puerto Rico, Guam, the U.S. Virgin Islands, or the Northern Marianas",
+    CIT_label=="Not a U.S Citizen"~"Not a citizen of the U.S.",
+    CIT_label=="Naturalized Citizen" ~ "U.S. citizen by naturalization"))
+filtered_dataset = filter(dataset,AGEP >= 18) # I have only selected adults over the age of 18.
+```
+
+
+```{r} 
+# I calculate the linear regression model of wage on the other variables.
+WAGP_model = lm(WAGP ~ ENG_label + CIT_label + AGEP + WKHP, 
+            data = filtered_dataset)
+summary(WAGP_model)
+```
+The R-square value is 0.2916, meaning that this model predicts about 29% of the variation in wage based on the four other variables. Most of the parameters are significant in predicting the results, with age, weekly work hours, and the ability to speak English being the most significant. On the other hand, citizenship is significant, but less so compared to the other variables. 
+
