@@ -36,5 +36,5 @@ WAGP_model = lm(WAGP ~ ENG_label + CIT_label + AGEP + WKHP,
             data = filtered_dataset)
 summary(WAGP_model)
 ```
-The R-square value is 0.2916, meaning that this model predicts about 29% of the variation in wage based on the four other variables. Most of the parameters are significant in predicting the results, with age, weekly work hours, and the ability to speak English being the most significant. On the other hand, citizenship is significant, but less so compared to the other variables. 
+The R-square value is 0.2916, meaning that this model predicts about 29% of the variation in wage based on the four other variables. Based on the p-value, most of the parameters are significant in predicting the results, with age, weekly work hours, and the ability to speak English being the most significant. On the whole, it seems like native English speakers earn a lot more compared to non-native English speakers. Wage also increases significantly with more work hours per week. On the other hand, citizenship is significant, but less so compared to the other variables. 
 
