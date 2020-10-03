@@ -19,8 +19,8 @@ I have chosen to analyze the relationship between the ability to speak English, 
 4. Age AGEP (Continuous)
 5. Usual hours worked per week past 12 months WKHP (Continuous)
 
+I shorten the names of the labels
 ```{r}
-# I shorten the names of the labels
 dataset=read.csv("ArielBi_people.csv")%>%
   mutate(struct_type = case_when(
     CIT_label=="Born in Puerto Rico and Islands"~"Born in Puerto Rico, Guam, the U.S. Virgin Islands, or the Northern Marianas",
@@ -29,9 +29,8 @@ dataset=read.csv("ArielBi_people.csv")%>%
 filtered_dataset = filter(dataset,AGEP >= 18) # I have only selected adults over the age of 18.
 ```
 
-
+I calculate the linear regression model of wage on the other variables.
 ```{r} 
-# I calculate the linear regression model of wage on the other variables.
 WAGP_model = lm(WAGP ~ ENG_label + CIT_label + AGEP + WKHP, 
             data = filtered_dataset)
 summary(WAGP_model)

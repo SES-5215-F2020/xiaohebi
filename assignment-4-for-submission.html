@@ -379,15 +379,15 @@ library(tidycensus)</code></pre>
 <li>Age AGEP (Continuous)</li>
 <li>Usual hours worked per week past 12 months WKHP (Continuous)</li>
 </ol>
-<pre class="r"><code># I shorten the names of the labels
-dataset=read.csv(&quot;ArielBi_people.csv&quot;)%&gt;%
+<p>I shorten the names of the labels</p>
+<pre class="r"><code>dataset=read.csv(&quot;ArielBi_people.csv&quot;)%&gt;%
   mutate(struct_type = case_when(
     CIT_label==&quot;Born in Puerto Rico and Islands&quot;~&quot;Born in Puerto Rico, Guam, the U.S. Virgin Islands, or the Northern Marianas&quot;,
     CIT_label==&quot;Not a U.S Citizen&quot;~&quot;Not a citizen of the U.S.&quot;,
     CIT_label==&quot;Naturalized Citizen&quot; ~ &quot;U.S. citizen by naturalization&quot;))
 filtered_dataset = filter(dataset,AGEP &gt;= 18) # I have only selected adults over the age of 18.</code></pre>
-<pre class="r"><code># I calculate the linear regression model of wage on the other variables.
-WAGP_model = lm(WAGP ~ ENG_label + CIT_label + AGEP + WKHP, 
+<p>I calculate the linear regression model of wage on the other variables.</p>
+<pre class="r"><code>WAGP_model = lm(WAGP ~ ENG_label + CIT_label + AGEP + WKHP, 
             data = filtered_dataset)
 summary(WAGP_model)</code></pre>
 <pre><code>## 
