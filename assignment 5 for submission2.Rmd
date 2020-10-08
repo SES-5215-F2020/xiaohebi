@@ -1,0 +1,173 @@
+
+---
+title: "Assignment 5"
+author: "Ariel Bi"
+date: "10/07/2020"
+output: html_document
+---
+
+```{r, message=FALSE}
+library(tidyverse)
+library(jtools)
+library(interactions)
+library(knitr)
+library(ggplot2)
+```
+
+I have chosen to analyze the relationship between the ability to speak English, citizenship status, wage or salary in the past 12 months, age, and usual hours worked per week. My sample population is the adult population of Massachusetts.
+
+1. Ability to speak english ENG (categorical)
+2. Citizenship status CIT (Categorical)
+3. Wages or salary income past 12 month WAGP (Continuous)
+4. Age AGEP (Continuous)
+5. Usual hours worked per week past 12 months WKHP (Continuous)
+
+```{r}
+# shorten the names of the labels
+dataset=read.csv("ArielBi_people.csv")%>%
+  mutate(struct_type = case_when(
+    CIT_label=="Born in Puerto Rico and Islands"~"Born in Puerto Rico, Guam, the U.S. Virgin Islands, or the Northern Marianas",
+    CIT_label=="Not a U.S Citizen"~"Not a citizen of the U.S.",
+    CIT_label=="Naturalized Citizen" ~ "U.S. citizen by naturalization"))
+filtered_dataset = filter(dataset,AGEP >= 18) # I have only selected adults over the age of 18.
+```
+
+
+```{r} 
+# calculate the linear regression model of wage on the other variables.
+model_1 = lm(WAGP ~ ENG_label + CIT_label + AGEP + WKHP, 
+            data = filtered_dataset)
+summary(model_1)
+```
+The R-square value is 0.2916, meaning that this model predicts about 29% of the variation in wage based on the four other variables. Based on the p-value, most of the parameters are significant in predicting the results, with age, weekly work hours, and the ability to speak English being the most significant. On the whole, it seems like native English speakers earn a lot more compared to non-native English speakers. Wage also increases significantly with more work hours per week. On the other hand, citizenship is significant, but less so compared to the other variables. 
+
+I want to test out how salary changes according to the age range.
+```{r}
+filtered_dataset <- filtered_dataset %>%
+  mutate(age_range = case_when(AGEP <= 40 ~ "age 18-40",
+                               (AGEP > 40 & AGEP <= 65) ~ "age 41-65",
+                               AGEP > 65 ~ "above age 65"))
+
+```
+
+I want to add secondary interaction terms with work hours to see if this would yield a better model. 
+
+```{r} 
+model_2 = lm(WAGP ~ ENG_label + CIT_label + age_range + WKHP + ENG_label:WKHP + CIT_label:WKHP + age_range:WKHP, 
+            data = filtered_dataset)
+summary(model_2)
+```
+
+```{r} 
+#rename variables
+coeff_desc <- c("doesn't speak English at all" =
+                         "ENG_labelNot at all",
+                 "doesn't speak English well" = 
+                         "ENG_labelNot well",
+                 "speaks English very well" = 
+                         "ENG_labelVery well",
+                "speaks English well" =
+                         "ENG_labelWell",
+                 "citizen born in Puerto Rico and other islands" = 
+                         "CIT_labelBorn in Puerto Rico, Guam, the U.S. Virgin Islands, or the Northern Marianas",
+                 "citizen born in the U.S" = 
+                         "CIT_labelBorn in the U.S. ",
+                "not a citizen of the U.S" = 
+                         "CIT_labelNot a citizen of the U.S.", 
+                 "U.S. citizen by naturalization" = 
+                         "CIT_labelU.S. citizen by naturalization ",
+                "age range 18-40" = 
+                         "age_rangeage 18-40 ",
+                "age range 41-65" =
+                         "age_rangeage 41-65",
+                 "work hours per week" = 
+                         "WKHP",
+                 "doesn't speak English at all x work hours per week" = 
+                         "ENG_labelNot at all:WKHP",
+                "doesn't speak English well x work hours per week" =
+                         "ENG_labelNot well:WKHP",
+                 "speaks English very well x work hours per week" = 
+                         "ENG_labelVery well:WKHP",
+                 "speaks English well x work hours per week" = 
+                         "ENG_labelWell:WKHP ",
+                "citizen born in Puerto Rico and other islands x work hours per week" = 
+                         "CIT_labelBorn in Puerto Rico, Guam, the U.S. Virgin Islands, or the Northern Marianas:WKHP", 
+                 "citizen born in the U.S x work hours per week" = 
+                         "CIT_labelBorn in the U.S.:WKHP",
+                "citizen by naturalization x work hours per week" = 
+                         "CIT_labelU.S. citizen by naturalization:WKHP ",
+                 "age range 18-40 x work hours per week" = 
+                         "age_rangeage 18-40:WKHP",
+                "age range 41-65 x work hours per week" = 
+                         "age_rangeage 41-65:WKHP ") 
+                
+
+```
+
+```{r,message=FALSE}
+plot_coefs(model_2, 
+           coefs = coeff_desc,
+           plot.distributions = TRUE,
+           rescale.distributions = TRUE) +
+  scale_x_continuous(name = "Effect on Annual Wage (dollars)")
+```
+
+The variables "doesn't speak English well x work hours per week", "doesn't speak English at all x work hours per week", and "work hours per week" seem to be strong indicators of wage because the coefficients are significantly different from 0.
+
+```{r, message=FALSE}
+# interaction between annual wage and work hours per week based on age
+interact_plot(model_2, pred = WKHP, modx = age_range, interval = TRUE) +
+  scale_x_continuous(name = "Work Hours per Week",
+                     limits = c(0, 100),
+                     breaks = breaks <- seq(0, 100, by = 10),
+                     labels = paste("", 
+                                    prettyNum(breaks, big.mark = "'"),
+                                    sep = "")) +
+  scale_y_continuous(name = "Annual Wage",
+                     breaks = seq(0, 650000, by = 50000)) +
+  scale_color_discrete(name = "") +
+  scale_linetype_discrete(name = "") +
+  scale_fill_discrete(name = "") 
+
+```
+
+Age range 41-65 seem to have the highest annual wage, while the wage of age above 65 and age 18-40 overlap significantly.
+
+```{r, message=FALSE}
+# interaction between annual wage and work hours per week based on ability to speak English
+interact_plot(model_2, pred = WKHP, modx = ENG_label, interval = TRUE) +
+  scale_x_continuous(name = "Work hours per Week",
+                     limits = c(0, 100),
+                     breaks = breaks <- seq(0, 100, by = 10),
+                     labels = paste("", 
+                                    prettyNum(breaks, big.mark = "'"),
+                                    sep = "")) +
+  scale_y_continuous(name = "Annual Wage",
+                     breaks = seq(0, 650000, by = 50000)) 
+ #  scale_color_discrete(name = "") +
+# scale_linetype_discrete(name = "") +
+#  scale_fill_discrete(name = "") 
+
+```
+
+The graph shows that in most cases, higher wages correspond to better English skills.
+
+```{r, message=FALSE}
+# interaction between annual wage and work hours per week based on citizenship status
+CIT_label_modx = c("Born abroad to American parents","Born in Puerto Rico or other islands","Born in US","Not US citizen","Naturalized")
+interact_plot(model_2, pred = WKHP, modx = CIT_label, interval = TRUE,modx.label=CIT_label_modx) +
+  scale_x_continuous(name = "Work hours per Week",
+                     limits = c(0, 100),
+                     breaks = breaks <- seq(0, 100, by = 10),
+                     labels = paste("", 
+                                    prettyNum(breaks, big.mark = "'"),
+                                    sep = "")) +
+  scale_y_continuous(name = "Annual Wage",
+                     breaks = seq(0, 650000, by = 50000))
+ #  scale_color_discrete(name = "") +
+ # scale_linetype_discrete(name = "") +
+#  scale_fill_discrete(name = "") 
+
+```
+
+This graph shows that on average, people who are not citizens or are naturalized citizens have the highest wage, while people born in Puerto Rico have the lowest wage. 
